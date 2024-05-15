@@ -1,12 +1,12 @@
 import numpy as np
 
-def model_s(R:float, D:float, alpha:float, M=0):
+def model_s(r:float, d:float, alpha:float, M=0):
     """calcul du coefficient de transmission applicable sur la face "à l'ombre" d'un hemicylindre
 
-    :param R: Rayon de l'hemicylindre
-    :type R: float
-    :param D: Distance entre le centre de la charge et la face externe de l'hemicylindre
-    :type D: float
+    :param r: Rayon de l'hemicylindre
+    :type r: float
+    :param d: Distance entre le centre de la charge et la face externe de l'hemicylindre
+    :type d: float
     :param alpha: angle de mesure
     :type alpha: float
     :param M: masse, defaults to 0.
@@ -14,13 +14,14 @@ def model_s(R:float, D:float, alpha:float, M=0):
     :return: l'angle limite de vue de la charge, le coefficient de transmission à l'angle alpha, la distnace reduite shiftée 
     :rtype: list
     """
-    x0 = D+R
-    B = -2*x0
+    
+    x0 = d+r
+    b0 = -2*x0
     # Delta = 0 donne :
-    k = np.sqrt((R**2)/(x0**2-R**2))
-    A = (1+k**2)
+    k = np.sqrt((r**2)/(x0**2-r**2))
+    a0 = (1+k**2)
     # Donc 
-    x_lim = - B/(2*A)
+    x_lim = - b0/(2*a0)
     y_lim = k*x_lim
     lda_lim = np.sqrt(x_lim**2+y_lim**2)
 
@@ -35,7 +36,7 @@ def model_s(R:float, D:float, alpha:float, M=0):
     
     alpha = 180-alpha
     
-    lda = np.sqrt((D+R+R*np.cos(np.deg2rad(alpha)))**2+((R*np.sin(np.deg2rad(alpha)))**2))
+    lda = np.sqrt((d+r+r*np.cos(np.deg2rad(alpha)))**2+((r*np.sin(np.deg2rad(alpha)))**2))
     # surpression UFC
     # dico_Z, dico_val = ufc.param_blast('hemispherique')
     # p_ufc =  np.asarray(dico_val["Pso"])*0.0689476
@@ -44,14 +45,12 @@ def model_s(R:float, D:float, alpha:float, M=0):
     # z_lda = lda/(M**(1/3.))
     # press = ufc.ponderation(z_lda, z_UFC, p_ufc)
     
-    RSDD = (lda-lda_lim)/R
-    Ct = a*RSDD**2 + b*RSDD + c
+    rsdd = (lda-lda_lim)/r
+    ct = a*rsdd**2 + b*rsdd + c
     #press_hemi = Ct*press
     
-    return alpha_lim, Ct, RSDD
+    return alpha_lim, ct
 
-
-print(model_s(0.2, 0.6, 90))
 
 # geoms = [
 #     # {'D': 2.5, 'R':1.25, 'M':200},

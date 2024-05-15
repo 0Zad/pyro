@@ -17,8 +17,14 @@ r = 0.01*st.number_input("Entrer le rayon (en cm) de l'hemicylindre", min_value=
 d = 0.01*st.number_input("Entrer la distance (en cm) charge - obstacle", min_value=10, max_value=300, step=10, value=60)
 
 
-alph = st.slider('Cursor test', min_value=0, max_value=180, value=18)
+alph = st.slider('Cursor test', min_value=0, max_value=180, value=90)
 
+result = model_s(r,d,alph)
+ct = result[1]
+if ct != 0:
+    st.success(f"Le coefficient de transmission pour l'angle {alph} est {ct:0.2f}")
+else :
+    st.error(f"l'angle {alph}° est plus petit que l'angle limite {result[0]:0.1f}° : le point est en visu direct de l'explosif")
 
 if st.button("Afficher tous les angles"):
     l_ct, l_angle = [], []
@@ -29,29 +35,38 @@ if st.button("Afficher tous les angles"):
         l_ct.append(angle_res[1])
         l_angle.append(angle)
 
-    
-    # fig, ax = plt.subplots()
-    # ax.plot(l_angle, l_ct)
-    # ax.set_xlabel('Input Values')
-    # ax.set_ylabel('Result')
-    # ax.set_title('Result vs. Input Values')
-    # st.pyplot(fig)
-
     fig =go.Figure()
     fig.add_trace(go.Scatter(x=l_angle, y=l_ct, mode='markers+lines', marker=dict(color='blue', size=10)))
     fig.add_trace(go.Scatter(x=[alph, alph, alph, 0], y=[0,result[1], result[1], result[1]], mode='lines', marker=dict(color='red', size=10)))
     fig.update_layout(title='Model S', xaxis_title='Angle', yaxis_title='Coefficient de transmission',)
     
-    # Display the plot on the Streamlit app page
     st.plotly_chart(fig)
 
 
+if st.button("test_graph"):
+# Création des données pour l'hémicylindre
+    theta = np.linspace(0, np.pi, 100)
+    xh = d+r+r*np.cos(theta)
+    yh = r*np.sin(theta)
 
-# Button to perform the calculation
-if st.button('Calcule du coefficient de transmission'):
-    result = model_s(r,d,alph)
-    ct = result[1]
-    if ct != 0:
-        st.success(f"Le coefficient de transmission pour l'angle {alph} est {ct:0.2f}")
-    else :
-        st.success(f"l'angle {alph}° est plus petit que l'angle limite {result[0]:0.1f}° : le point est en visu direct de l'explosif")
+    xt = np.linspace(0, d+3*r, 100)
+    yt = np.zeros_like(xt)
+
+    # Création du graphique
+    fig, ax = plt.subplots()
+
+    # Création de la figure Plotly
+    fig = go.Figure()
+
+    # Ajout de l'hémicylindre
+    fig.add_trace(go.Scatter(x=xh, y=yh, mode='lines', name='Hémicylindre', line=dict(color='blue', width=4)))
+    fig.add_trace(go.Scatter(x=xt, y=yt, mode='lines', name='Table', line=dict(color='blue', width=4)))
+    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', name='Explo', marker=dict(color='red', size=10)))
+    fig.add_trace(go.Scatter(x=[0, r+d], y=[0,r], mode='lines', name='$\lambda$', line=dict(color='red', width=4)))
+
+    # Paramètres de la mise en page
+    fig.update_layout(xaxis=dict(title='X'), yaxis=dict(title='Y'),
+                      title='Hémicylindre')
+
+    # Affichage de la figure dans Streamlit
+    st.plotly_chart(fig)
